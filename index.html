@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BUSTED</title>
+<style>
+  :root { --cream: #efe8d6; --ink: #2a2218; --gold: #d9b25c; --serif: "Didot", "Bodoni 72", "Bodoni MT", "Playfair Display", Georgia, serif; }
+  html, body { margin: 0; height: 100%; background: #05060a; overflow: hidden; font-family: var(--serif); color: var(--cream); }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #hud { position: fixed; inset: 0; pointer-events: none; user-select: none; }
+  #keys { position: absolute; top: 22px; left: 26px; display: flex; gap: 8px; opacity: 0; transition: opacity .8s; }
+  #keys svg { width: 30px; height: 46px; fill: none; stroke: rgba(239, 232, 214, .45); stroke-width: 2.2; transition: all .5s; }
+  #keys svg.on { stroke: var(--gold); fill: var(--gold); filter: drop-shadow(0 0 8px rgba(217, 178, 92, .8)); transform: translateY(-2px) scale(1.08); }
+  #eye { position: absolute; top: 20px; left: 50%; width: 54px; height: 34px; transform: translateX(-50%); opacity: 0; transition: opacity .25s; }
+  #eye svg { width: 100%; height: 100%; fill: none; stroke: var(--cream); stroke-width: 2.4; stroke-linecap: round; }
+  #eye.s1 { opacity: .9; } #eye.s2 { opacity: 1; } #eye.s2 svg { stroke: #ff5a44; } #eye.s2 #pupil { fill: #ff5a44; }
+  #pupil { fill: var(--cream); stroke: none; }
+  .b { position: absolute; transform: translate(-50%, -100%); background: var(--cream); color: var(--ink); padding: 8px 14px 9px; border-radius: 3px; font-style: italic; font-size: 17px; line-height: 1.25; max-width: 270px; text-align: center; box-shadow: 0 6px 24px rgba(0, 0, 0, .45); border: 1px solid rgba(60, 40, 20, .35); opacity: 0; transition: opacity .25s; white-space: nowrap; }
+  .b.on { opacity: 1; }
+  .b::after { content: ""; position: absolute; left: 50%; bottom: -7px; width: 12px; height: 12px; background: var(--cream); transform: translateX(-50%) rotate(45deg); border-right: 1px solid rgba(60, 40, 20, .35); border-bottom: 1px solid rgba(60, 40, 20, .35); }
+  .b.k { font-style: normal; font-weight: 700; font-size: 15px; padding: 5px 11px 6px; letter-spacing: .08em; }
+  #hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 26px; align-items: flex-end; opacity: 0; transition: opacity .8s; }
+  .kc { display: inline-grid; place-items: center; min-width: 30px; height: 30px; padding: 0 7px; border: 1.5px solid rgba(239, 232, 214, .7); border-radius: 5px; font: 600 13px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .06em; box-sizing: border-box; background: rgba(5, 6, 10, .45); }
+  .wasd { display: grid; grid-template-columns: repeat(3, 30px); gap: 4px; } .wasd .kc:first-child { grid-column: 2; grid-row: 1; } .wasd .kc:not(:first-child) { grid-row: 2; }
+  .grp { display: flex; flex-direction: column; align-items: center; gap: 7px; } .grp i { font-size: 13px; letter-spacing: .14em; opacity: .75; }
+  #card { position: absolute; inset: 0; display: grid; place-items: center; transition: opacity 1s; }
+  #card.t { place-items: start center; padding-top: 6vh; box-sizing: border-box; }
+  #press { position: fixed; left: 0; right: 0; bottom: 7vh; }
+  #title { text-align: center; text-shadow: 0 2px 30px rgba(0, 0, 0, .8); }
+  #title h1 { margin: 0; font-size: clamp(56px, 10vw, 150px); font-weight: 700; letter-spacing: .16em; margin-right: -.16em; line-height: 1; }
+  #title .rule { height: 1px; background: var(--cream); opacity: .6; margin: 14px auto; width: 62%; }
+  #title p { margin: 0; font-size: 15px; letter-spacing: .5em; margin-right: -.5em; animation: bl 2.2s ease-in-out infinite; }
+  @keyframes bl { 50% { opacity: .25; } }
+  #end { display: none; background: var(--cream); color: var(--ink); padding: 34px 54px 30px; border: 1px solid rgba(60, 40, 20, .4); outline: 6px solid var(--cream); box-shadow: 0 20px 80px rgba(0, 0, 0, .6); text-align: center; min-width: 340px; }
+  #end h2 { margin: 0 0 6px; font-size: 25px; letter-spacing: .16em; } #end p { margin: 3px 0; font-size: 18px; } #end em { font-size: 19px; }
+  #end .rule { height: 1px; background: var(--ink); opacity: .35; margin: 16px auto 13px; width: 40%; } #end small { font: 600 11px/1.9 ui-sans-serif, system-ui, sans-serif; letter-spacing: .22em; opacity: .7; display: block; }
+  #fade { position: absolute; inset: 0; background: #05060a; opacity: 1; display: grid; place-items: center; }
+  #fade span { font-size: clamp(26px, 4.4vw, 58px); letter-spacing: .4em; margin-right: -.4em; font-weight: 700; }
+  #mute { position: absolute; top: 20px; right: 24px; font: 600 11px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .2em; opacity: .45; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="keys">
+    <svg viewBox="0 0 30 46"><circle cx="15" cy="11" r="7.5"/><path d="M15 18.5V42M15 34h7M15 40h5"/></svg>
+    <svg viewBox="0 0 30 46"><circle cx="15" cy="11" r="7.5"/><path d="M15 18.5V42M15 34h7M15 40h5"/></svg>
+    <svg viewBox="0 0 30 46"><circle cx="15" cy="11" r="7.5"/><path d="M15 18.5V42M15 34h7M15 40h5"/></svg>
+  </div>
+  <div id="eye"><svg viewBox="0 0 54 34"><path d="M3 17C12 5 42 5 51 17C42 29 12 29 3 17Z"/><circle id="pupil" cx="27" cy="17" r="6"/></svg></div>
+  <div id="mute">M</div>
+  <div id="bubbles"></div>
+  <div id="hint">
+    <div class="grp"><div class="wasd"><span class="kc">W</span><span class="kc">A</span><span class="kc">S</span><span class="kc">D</span></div></div>
+    <div class="grp"><span class="kc">SHIFT</span><i>tiptoe</i></div>
+  </div>
+  <div id="card" class="t">
+    <div id="title"><div class="rule"></div><h1>BUSTED</h1><div class="rule"></div><p id="press">&nbsp;</p></div>
+    <div id="end"></div>
+  </div>
+  <div id="fade"><span id="fadeText"></span></div>
+</div>
+<script src="dist/game.js"></script>
+</body>
+</html>
